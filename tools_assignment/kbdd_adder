@@ -1,0 +1,34 @@
+KBDD: # input variables
+KBDD: boolean a b cin d0 d1 d2 d3
+KBDD: #
+KBDD: # define the correct equation for the adder’s carry out
+KBDD: eval cout a&b + (a+b)&cin
+cout: a&b + (a+b)&cin
+KBDD: #
+KBDD: # define the incorrect version of this equation (just for fun)
+KBDD: eval wrong a&b + (!(a+b))&cin
+wrong: a&b + (!(a+b))&cin
+KBDD: #
+KBDD: # define the to-be-repaired version with the MUX
+KBDD: eval repair a&b + (d0&!a&!b + d1&!a&b + d2&a&!b + d3&a&b)&cin
+repair: a&b + (d0&!a&!b + d1&!a&b + d2&a&!b + d3&a&b)&cin
+KBDD: #
+KBDD: # make the Z function that compares the right version of
+KBDD: # the network and the version with the MUX replacing the
+KBDD: # suspect gate (this is EXNOR of cout and repair functions)
+KBDD: eval Z repair&cout + !repair&!cout
+Z: repair&cout + !repair&!cout
+KBDD: # universally quantify away the non-mux vars: a b cin
+KBDD: quantify u ForallZ Z a b cin
+KBDD: #
+KBDD: # let’s ask kbdd to show an equation for this quantified function
+KBDD: sop ForallZ
+!d0 & d1 & d2
+KBDD: #
+KBDD: # what values of the d’s make this function == 1?
+KBDD: satisfy ForallZ
+Variables: d0 d1 d2
+011
+KBDD: #
+KBDD: # that’s it!
+KBDD: quit
