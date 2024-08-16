@@ -4,6 +4,8 @@
 #include <string>
 #include <tuple>
 #include <sstream>
+#include <unordered_map>
+#include <algorithm>
 
 using namespace std;
 
@@ -42,16 +44,63 @@ bool check_empty_cube(vector<vector<int>> cubes){
     }
     return false;
 }
-int find_most_binate(vector<vector<int>> cubes){
-    return 0;
+
+int find_most_binate(vector<vector<int>>& cubes){
+    std::unordered_map<int, vector<int>> totalCount;
+    for(auto cube: cubes){
+        for (auto element: cube){
+            if (totalCount.find(abs(element)) == totalCount.end()){
+                totalCount[abs(element)] = {1,0,0};
+                if (element > 0){
+                    totalCount[abs(element)][1] = 1;
+                }else{
+                    totalCount[abs(element)][2] = 1;
+                }
+            }else{
+                totalCount[abs(element)][0] += 1;
+                if (element > 0){
+                    totalCount[abs(element)][1] += 1;
+                }else{
+                    totalCount[abs(element)][2] += 1;
+                }
+            }
+        }
+    }
+    int min = INT32_MAX;
+    for (auto key: totalCount){
+        if (key.second[0]<= min){
+            min  = key.second[0];
+        }
+    }
+    vector<int> min_index;
+    for (auto key: totalCount){
+        if (key.second[0] == min){
+            min_index.push_back(key.first);
+        }
+    }
+    std::sort(min_index.begin(), min_index.end());
+    return min_index[0];
 }
-vector<vector<int>> cal_pos_cofactor(vector<vector<int>> cubes, int x){
+
+vector<vector<int>> calc_cofactor(vector<vector<int>> cubes, int x){
     vector<vector<int>> result;
-    
-    return result;
-}
-vector<vector<int>> cal_neg_cofactor(vector<vector<int>> cubes, int x){
-    vector<vector<int>> result;
+    for (auto cube: cubes){
+        vector<int> temp;
+        bool keepCube = true;
+        for (auto element: cube){
+            if (element == x){
+                continue;
+            }else if (element == -x){
+                keepCube = false;
+                break;
+            }else{
+                temp.push_back(element);
+            }
+        }
+        if (keepCube){
+            result.push_back(temp);
+        }
+    }
     return result;
 }
 
@@ -65,12 +114,13 @@ vector<vector<int>> complement(vector<vector<int>> cubes) {
         for (auto element: cube){
             result.push_back({-element});
         }
+        return result;
     }else if(check_empty_cube(cubes)){
         return result;
     }else{
         int x = find_most_binate(cubes);
-        vector<vector<int>> posCubes = complement(cal_pos_cofactor(cubes, x));
-        vector<vector<int>> negCubes = complement(cal_neg_cofactor(cubes, x));
+        vector<vector<int>> posCubes = complement(calc_cofactor(cubes, x));
+        vector<vector<int>> negCubes = complement(calc_cofactor(cubes, -x));
         for (auto cube: posCubes){
             cube.push_back(x);
             result.push_back(cube);
@@ -81,6 +131,21 @@ vector<vector<int>> complement(vector<vector<int>> cubes) {
         }
         return result;
     }
+    return result;
+}
+
+void write_to_file(string outputfile, int num_of_vars, vector<vector<int>> result){
+    ofstream file(outputfile);
+    file << num_of_vars << endl;
+    file << result.size() << endl;
+    for (auto cube: result){
+        file << cube.size() << " ";
+        for (auto element: cube){
+            file << element << " ";
+        }
+        file << endl;
+    }
+    file.close();
 }
 
 int main() {
@@ -90,9 +155,11 @@ int main() {
 
     int num_of_vars=0, num_of_cubes=0;
     vector<std::vector<int>> cubes;
+    vector<std::vector<int>> result;
     
-    parse_input_file(input_file, num_of_vars, num_of_cubes, cubes);
-    complement(cubes);
+    parse_input_file(input_file+".pcn", num_of_vars, num_of_cubes, cubes);
+    result = complement(cubes);
+    write_to_file(input_file+".out", num_of_vars, result);
 
     return 0;
 }
