@@ -46,7 +46,7 @@ bool check_empty_cube(vector<vector<int>> cubes){
 }
 
 int find_most_binate(vector<vector<int>>& cubes){
-    std::unordered_map<int, vector<int>> totalCount;
+    std::unordered_map<int, vector<int>> totalCount; // key is the variable, value is the total count, positive count, negative count.
     for(auto cube: cubes){
         for (auto element: cube){
             if (totalCount.find(abs(element)) == totalCount.end()){
@@ -66,20 +66,28 @@ int find_most_binate(vector<vector<int>>& cubes){
             }
         }
     }
-    int min = INT32_MAX;
+    int max_count = INT32_MIN;
     for (auto key: totalCount){
-        if (key.second[0]<= min){
-            min  = key.second[0];
+        if (key.second[0]>= max_count){
+            max_count  = key.second[0];
         }
     }
-    vector<int> min_index;
+    std::vector<std::pair<int,int>> binates; // key is the variable, value is the difference between the number of positive and negative count.
     for (auto key: totalCount){
-        if (key.second[0] == min){
-            min_index.push_back(key.first);
+        if (key.second[0] == max_count){
+            binates.push_back({key.first, (key.second[1]- key.second[2])});
         }
     }
-    std::sort(min_index.begin(), min_index.end());
-    return min_index[0];
+    if (binates.size() == 1){
+        return binates.begin()->first;
+    }else{
+        sort(binates.begin(), binates.end(), [](auto& a, auto& b) {
+            return a.second < b.second;
+        });
+        return binates.begin()->first;
+    }
+    std::sort(binates.begin(), binates.end());
+    return binates.begin()->first;
 }
 
 vector<vector<int>> calc_cofactor(vector<vector<int>> cubes, int x){
@@ -121,6 +129,8 @@ vector<vector<int>> complement(vector<vector<int>> cubes) {
         int x = find_most_binate(cubes);
         vector<vector<int>> posCubes = complement(calc_cofactor(cubes, x));
         vector<vector<int>> negCubes = complement(calc_cofactor(cubes, -x));
+        if (posCubes == negCubes)
+            return posCubes;
         for (auto cube: posCubes){
             cube.push_back(x);
             result.push_back(cube);
