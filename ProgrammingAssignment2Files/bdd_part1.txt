@@ -1,0 +1,27 @@
+# d is for mux (16:1)
+# a and b for 4-bit adder, cin is carry in
+#
+boolean a[3..0] b[3..0] cin d[15..0]
+#
+# evaluate the circuit
+eval c1 (a0 & b0) + (a0 & cin) + (b0 & cin)
+eval c2 (a1 & b1) + (a1 & c1) + (b1 & c1)
+eval c3 (a2 & b2) + (a2 & c2) + (b2 & c2)
+eval c4 (a3 & b3) + (a3 & c3) + (b3 & c3)
+#
+eval q1 a0^b0
+eval q2 a1^b1
+eval q3 a2^b2
+eval q4 a3^b3
+#
+mux 4 Select q1 q2 q3 q4 d[15..0]
+mux 1 cout Select cin c4
+#
+# 4-bit adder
+adder 4 cout_expected sum[3..0] a[3..0] b[3..0] cin
+#
+eval Z !(cout ^ cout_expected)
+#
+quantify u Z_quantify Z a[3..0] b[3..0] cin
+#
+satisfy Z_quantify
